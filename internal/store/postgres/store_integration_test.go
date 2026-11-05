@@ -5,13 +5,11 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/slapshot/gorelay/internal/domain"
 )
 
@@ -68,5 +66,4 @@ func TestAdmissionAndClientIsolation(t *testing.T) {
 	var rows int
 	err = s.pool.QueryRow(ctx,"SELECT COUNT(*) FROM events WHERE client_id=$1",client).Scan(&rows)
 	if err != nil || rows != 1 {t.Fatalf("expected one row, got %d %v",rows,err)}
-	_ = fmt.Sprintf("%s",pgx.ReadCommitted) // confirm pgx API dependency is available
 }
