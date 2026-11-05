@@ -48,7 +48,7 @@ New event: HTTP **202 Accepted**, returned only after transaction commit:
 
 Duplicate idempotency key with same normalized request content: **200 OK** with original event ID and its **current** status. Same key with different request fingerprint: **409 Conflict**. Concurrent attempts must be resolved by the database unique constraint, never by check-then-insert.
 
-Fingerprint input: canonical deterministic encoding of validated fields type, destination_id, and payload (not authorization headers, idempotency key, client-provided whitespace, request IDs or server timestamps), hashed with SHA-256. Define and test canonical numeric rules before release. Preserve JSON numbers rather than silently converting all of them to float64. The key's unique scope is (client_id, idempotency_key).
+Fingerprint input: canonical deterministic encoding of validated fields type, destination_id, and payload (not authorization headers, idempotency key, client-provided whitespace, request IDs or server timestamps), hashed with SHA-256. v0.1 pre-alpha rule: number spelling is significant (1 and 1.0 differ); only JSON object key ordering and whitespace are normalized. Review this rule before stable release. Preserve JSON numbers rather than silently converting all of them to float64. The key's unique scope is (client_id, idempotency_key).
 
 ## GET /v1/events/{id}
 
