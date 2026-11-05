@@ -55,7 +55,7 @@ jobs:
         run: go build ./cmd/gorelay
       - name: Verify gofmt
         run: |
-          unformatted="$(gofmt -l cmd internal)"
+          unformatted="$(gofmt -l cmd internal examples)"
           if [ -n "$unformatted" ]; then
             echo "$unformatted"
             exit 1
