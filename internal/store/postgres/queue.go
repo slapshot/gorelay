@@ -101,7 +101,8 @@ func (s *Store) Finish(ctx context.Context, job queue.Job, result queue.Outcome)
 		return false, fmt.Errorf("begin completion: %w", err)
 	}
 	defer rollback(tx)
-	tag, err := tx.Exec(ctx, `
+	var finalStatus string
+	err = tx.QueryRow(ctx, `
 		UPDATE events
 		SET status=CASE
 		      WHEN $3='DELIVERED' THEN 'DELIVERED'
@@ -117,22 +118,21 @@ func (s *Store) Finish(ctx context.Context, job queue.Job, result queue.Outcome)
 		    updated_at=now()
 		WHERE id=$1::uuid AND lease_token=$2::uuid
 		  AND status='PROCESSING' AND lease_until > now()
+		RETURNING status
 	`, job.ID, job.LeaseToken, string(result.Kind), result.RetryDelay.Milliseconds(),
-		result.HTTPStatus, result.ErrorCode)
-	if err != nil {
-		return false, fmt.Errorf("update delivery: %w", err)
-	}
-	if tag.RowsAffected() == 0 {
+		result.HTTPStatus, result.ErrorCode).Scan(&finalStatus)
+	if errors.Is(err, pgx.ErrNoRows) {
 		if err := tx.Rollback(ctx); err != nil {
 			return false, fmt.Errorf("rollback stale result: %w", err)
 		}
 		return false, nil
 	}
-	tag, err = tx.Exec(ctx, `
+	if err != nil { return false, fmt.Errorf("update delivery: %w", err) }
+	tag, err := tx.Exec(ctx, `
 		UPDATE delivery_attempts
 		SET finished_at=now(),outcome_code=$4,http_status=NULLIF($5,0),duration_ms=$6
 		WHERE event_id=$1::uuid AND lease_token=$2::uuid AND attempt_number=$3
-	`, job.ID, job.LeaseToken, job.Attempt, string(result.Kind), result.HTTPStatus, result.Duration.Milliseconds())
+	`, job.ID, job.LeaseToken, job.Attempt, finalStatus, result.HTTPStatus, result.Duration.Milliseconds())
 	if err != nil {
 		return false, fmt.Errorf("finish audit: %w", err)
 	}
