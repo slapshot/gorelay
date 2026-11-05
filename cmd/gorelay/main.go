@@ -42,7 +42,7 @@ func run(logger *slog.Logger) error {
 		return err
 	}
 	defer store.Close()
-	apiServer, err := api.New(store, auth, cfg.MaxBodyBytes)
+	apiServer, err := api.New(store, auth, cfg.MaxBodyBytes, cfg.AllowAdmissionPreview)
 	if err != nil {
 		return err
 	}
