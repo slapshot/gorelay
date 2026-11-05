@@ -18,6 +18,11 @@ func TestAuthenticator(t *testing.T) {
 }
 
 func TestAuthenticatorRejectsBadSetup(t *testing.T) {
+	_, duplicateErr := NewAuthenticator([]Credential{
+		{Client: Client{ID:"a", Destinations:map[string]bool{"sink":true}}, Token:strings.Repeat("t",40)},
+		{Client: Client{ID:"b", Destinations:map[string]bool{"sink":true}}, Token:strings.Repeat("t",40)},
+	})
+	if duplicateErr == nil { t.Fatal("accepted duplicate client tokens") }
 	_, err := NewAuthenticator([]Credential{
 		{Client: Client{ID: "x", Destinations: map[string]bool{"sink": true}}, Token: "short"},
 	})
