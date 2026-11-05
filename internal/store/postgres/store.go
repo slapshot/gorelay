@@ -58,7 +58,11 @@ func (s *Store) Admit(ctx context.Context, input domain.Input) (domain.Event, bo
 	if err != nil {
 		return domain.Event{}, false, fmt.Errorf("%w: begin admission", domain.ErrUnavailable)
 	}
-	defer func() { _ = tx.Rollback(context.Background()) }()
+	defer func() {
+		rollbackCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		_ = tx.Rollback(rollbackCtx)
+	}()
 
 	id, err := uuidV4()
 	if err != nil {
