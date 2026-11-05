@@ -16,7 +16,7 @@ https://www.postgresql.org/download/linux/debian/
 
 ```bash
 sudo apt update
-sudo apt install -y git curl ca-certificates postgresql-common
+sudo apt install -y git curl ca-certificates openssl postgresql-common
 sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
 sudo apt update
 sudo apt install -y postgresql-18 postgresql-client-18
@@ -70,6 +70,7 @@ Keep the receiver and the relay on the same guest. In two separate shells, set t
 
 ```bash
 # Terminal A, from the repository
+umask 077
 export GORELAY_DEV_SINK_SECRET="$(openssl rand -hex 32)"
 echo "$GORELAY_DEV_SINK_SECRET" > /tmp/gorelay-dev-sink-secret
 chmod 600 /tmp/gorelay-dev-sink-secret
@@ -78,6 +79,7 @@ go run ./examples/dev-sink
 
 ```bash
 # Terminal B, from the repository
+umask 077
 export GORELAY_DEV_SINK_SECRET="$(cat /tmp/gorelay-dev-sink-secret)"
 export GORELAY_TOKEN_DEMO="$(openssl rand -hex 32)"
 printf '%s' "$GORELAY_TOKEN_DEMO" > /tmp/gorelay-token
@@ -85,6 +87,7 @@ chmod 600 /tmp/gorelay-token
 install -m 600 examples/clients.example.json /tmp/gorelay-clients.json
 install -m 600 examples/destinations.example.json /tmp/gorelay-destinations.json
 
+export GORELAY_DATABASE_URL='postgres://gorelay_lab:REPLACE_WITH_LAB_PASSWORD@127.0.0.1:5432/gorelay_lab?sslmode=disable'
 export GORELAY_CLIENTS_FILE=/tmp/gorelay-clients.json
 export GORELAY_DESTINATIONS_FILE=/tmp/gorelay-destinations.json
 export GORELAY_ENABLE_ADMISSION_PREVIEW=true
