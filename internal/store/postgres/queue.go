@@ -74,8 +74,8 @@ func (s *Store) Claim(ctx context.Context, limit int, lease time.Duration) ([]qu
 			UPDATE delivery_attempts
 			SET finished_at=now(),outcome_code='LEASE_RECLAIMED'
 			WHERE event_id=$1::uuid AND attempt_number < $2 AND finished_at IS NULL
-		`,j.ID,j.Attempt);err!=nil{
-			return nil,fmt.Errorf("close abandoned attempt: %w",err)
+		`, j.ID, j.Attempt); err != nil {
+			return nil, fmt.Errorf("close abandoned attempt: %w", err)
 		}
 		_, err = tx.Exec(ctx, `
 			INSERT INTO delivery_attempts(event_id,attempt_number,lease_token)
