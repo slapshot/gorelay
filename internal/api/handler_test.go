@@ -65,7 +65,7 @@ func testHandler(t *testing.T) (http.Handler, *memoryStore) {
 		{Client: security.Client{ID:"beta", Destinations:map[string]bool{"sink":true}}, Token:strings.Repeat("b",40)},
 	})
 	if err != nil { t.Fatal(err) }
-	server, err := New(store, auth, 1024)
+	server, err := New(store, auth, 1024, true)
 	if err != nil { t.Fatal(err) }
 	return server.Handler(), store
 }
