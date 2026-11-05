@@ -18,6 +18,7 @@ type Config struct {
 	DatabaseURL string
 	MaxBodyBytes int64
 	Credentials []security.Credential
+	AllowAdmissionPreview bool
 }
 
 type clientFile struct {
@@ -39,7 +40,8 @@ func Load() (Config, error) {
 	if err != nil || host != "127.0.0.1" || port == "" {
 		return Config{}, errors.New("GORELAY_LISTEN_ADDR must use 127.0.0.1 and an explicit port")
 	}
-	if _, err := strconv.Atoi(port); err != nil {
+	nport, err := strconv.Atoi(port)
+	if err != nil || nport < 1 || nport > 65535 {
 		return Config{}, errors.New("invalid listen port")
 	}
 	if value := os.Getenv("GORELAY_MAX_BODY_BYTES"); value != "" {
@@ -49,6 +51,11 @@ func Load() (Config, error) {
 		}
 		cfg.MaxBodyBytes = n
 	}
+	preview := os.Getenv("GORELAY_ENABLE_ADMISSION_PREVIEW")
+	if preview != "" && preview != "true" && preview != "false" {
+		return Config{}, errors.New("GORELAY_ENABLE_ADMISSION_PREVIEW must be true or false")
+	}
+	cfg.AllowAdmissionPreview = preview == "true"
 	cfg.DatabaseURL = os.Getenv("GORELAY_DATABASE_URL")
 	if cfg.DatabaseURL == "" {
 		return Config{}, errors.New("GORELAY_DATABASE_URL is required")
