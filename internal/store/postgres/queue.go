@@ -127,7 +127,9 @@ func (s *Store) Finish(ctx context.Context, job queue.Job, result queue.Outcome)
 		}
 		return false, nil
 	}
-	if err != nil { return false, fmt.Errorf("update delivery: %w", err) }
+	if err != nil {
+		return false, fmt.Errorf("update delivery: %w", err)
+	}
 	tag, err := tx.Exec(ctx, `
 		UPDATE delivery_attempts
 		SET finished_at=now(),outcome_code=$4,http_status=NULLIF($5,0),duration_ms=$6
