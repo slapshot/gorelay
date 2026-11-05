@@ -1,0 +1,10 @@
+{
+  "destinations": [
+    {
+      "id": "example-sink",
+      "url": "http://127.0.0.1:9081/events",
+      "secret_env": "GORELAY_DEV_SINK_SECRET",
+      "allow_loopback": true
+    }
+  ]
+}
