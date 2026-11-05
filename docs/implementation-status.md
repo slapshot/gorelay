@@ -22,7 +22,7 @@ This page distinguishes **implemented** behavior from design targets. Do not dep
 - Security review of complete outbound SSRF controls.
 - End-to-end producer outbox/consumer inbox examples.
 
-**Important:** The current service can accept events and store them as PENDING, but does not deliver them. This is a pre-alpha development milestone and must not be used as a relay in production.
+**Important:** The current service can accept events and store them as PENDING **only with the explicit** `GORELAY_ENABLE_ADMISSION_PREVIEW=true` development flag, but does not deliver them. Admission is disabled by default. This is a pre-alpha development milestone and must not be used as a relay in production.
 
 ## Running for local development
 
@@ -30,7 +30,7 @@ This page distinguishes **implemented** behavior from design targets. Do not dep
 2. Apply `migrations/postgres/0001_init.up.sql` using a migration role. Grant DML (events, delivery_attempts) and schema-read privileges to the separate runtime role.
 3. Create a JSON config analogous to `examples/clients.example.json` and chmod 0600. Export the referenced high-entropy token as an environment variable.
 4. Set `GORELAY_DATABASE_URL` to the runtime PostgreSQL DSN and `GORELAY_CLIENTS_FILE` to the absolute path.
-5. Run `go run ./cmd/gorelay` with a currently supported Go toolchain.
+5. If testing ingestion into a disposable database, set `GORELAY_ENABLE_ADMISSION_PREVIEW=true` explicitly. The flag is unsafe for production until delivery workers exist. Run `go run ./cmd/gorelay` with a currently supported Go toolchain.
 6. Check `curl -fsS http://127.0.0.1:8092/healthz` and `/readyz`.
 
 Do not expose the pre-alpha service on public interfaces. PostgreSQL driver is pinned in go.mod; run `go mod tidy` before building until go.sum is committed.
