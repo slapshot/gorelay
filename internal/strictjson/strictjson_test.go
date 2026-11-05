@@ -7,9 +7,9 @@ import (
 
 func TestObject(t *testing.T) {
 	tests := []struct {
-		name string
+		name  string
 		input string
-		ok bool
+		ok    bool
 	}{
 		{"simple", `{"a":1,"nested":{"x":[true,null,2]}}`, true},
 		{"duplicate top-level", `{"a":1,"a":2}`, false},

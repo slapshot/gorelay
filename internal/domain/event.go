@@ -19,9 +19,9 @@ const (
 )
 
 var (
-	ErrNotFound     = errors.New("event not found")
-	ErrConflict     = errors.New("idempotency conflict")
-	ErrUnavailable  = errors.New("storage unavailable")
+	ErrNotFound    = errors.New("event not found")
+	ErrConflict    = errors.New("idempotency conflict")
+	ErrUnavailable = errors.New("storage unavailable")
 )
 
 type Input struct {
@@ -34,15 +34,15 @@ type Input struct {
 }
 
 type Event struct {
-	ID             string
-	ClientID       string
-	Type           string
-	DestinationID  string
-	Status         Status
-	Attempts       int
-	CreatedAt      time.Time
-	NextAttemptAt  *time.Time
-	DeliveredAt    *time.Time
+	ID            string
+	ClientID      string
+	Type          string
+	DestinationID string
+	Status        Status
+	Attempts      int
+	CreatedAt     time.Time
+	NextAttemptAt *time.Time
+	DeliveredAt   *time.Time
 }
 
 type Store interface {
@@ -50,4 +50,3 @@ type Store interface {
 	GetOwned(ctx context.Context, clientID string, eventID string) (Event, error)
 	Ready(ctx context.Context) error
 }
-

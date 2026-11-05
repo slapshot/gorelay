@@ -14,17 +14,17 @@ import (
 )
 
 type Config struct {
-	ListenAddr string
-	DatabaseURL string
-	MaxBodyBytes int64
-	Credentials []security.Credential
+	ListenAddr            string
+	DatabaseURL           string
+	MaxBodyBytes          int64
+	Credentials           []security.Credential
 	AllowAdmissionPreview bool
 }
 
 type clientFile struct {
 	Clients []struct {
-		ID string `json:"id"`
-		TokenEnv string `json:"token_env"`
+		ID           string   `json:"id"`
+		TokenEnv     string   `json:"token_env"`
 		Destinations []string `json:"destinations"`
 	} `json:"clients"`
 }

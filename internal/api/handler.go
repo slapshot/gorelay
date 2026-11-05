@@ -27,11 +27,11 @@ var (
 )
 
 type Server struct {
-	store      domain.Store
-	auth       *security.Authenticator
-	maxBytes   int64
+	store            domain.Store
+	auth             *security.Authenticator
+	maxBytes         int64
 	admissionPreview bool
-	draining   atomic.Bool
+	draining         atomic.Bool
 }
 
 func New(store domain.Store, auth *security.Authenticator, maxBodyBytes int64, admissionPreview bool) (*Server, error) {
@@ -189,14 +189,14 @@ func (s *Server) getEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	write(w, http.StatusOK, struct {
-		ID            string     `json:"id"`
-		Type          string     `json:"type"`
-		DestinationID string     `json:"destination_id"`
+		ID            string        `json:"id"`
+		Type          string        `json:"type"`
+		DestinationID string        `json:"destination_id"`
 		Status        domain.Status `json:"status"`
-		Attempts      int        `json:"attempts"`
-		NextAttemptAt *time.Time `json:"next_attempt_at"`
-		CreatedAt     time.Time  `json:"created_at"`
-		DeliveredAt   *time.Time `json:"delivered_at"`
+		Attempts      int           `json:"attempts"`
+		NextAttemptAt *time.Time    `json:"next_attempt_at"`
+		CreatedAt     time.Time     `json:"created_at"`
+		DeliveredAt   *time.Time    `json:"delivered_at"`
 	}{event.ID, event.Type, event.DestinationID, event.Status, event.Attempts, event.NextAttemptAt, event.CreatedAt, event.DeliveredAt})
 }
 

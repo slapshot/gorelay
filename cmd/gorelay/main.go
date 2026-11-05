@@ -47,13 +47,13 @@ func run(logger *slog.Logger) error {
 		return err
 	}
 	srv := &http.Server{
-		Addr: cfg.ListenAddr,
-		Handler: apiServer.Handler(),
+		Addr:              cfg.ListenAddr,
+		Handler:           apiServer.Handler(),
 		ReadHeaderTimeout: 5 * time.Second,
-		ReadTimeout: 15 * time.Second,
-		WriteTimeout: 15 * time.Second,
-		IdleTimeout: 30 * time.Second,
-		MaxHeaderBytes: 8192,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       30 * time.Second,
+		MaxHeaderBytes:    8192,
 	}
 	errs := make(chan error, 1)
 	go func() { errs <- srv.ListenAndServe() }()

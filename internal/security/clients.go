@@ -42,7 +42,9 @@ func NewAuthenticator(credentials []Credential) (*Authenticator, error) {
 		}
 		ids[c.Client.ID] = true
 		hash := sha256.Sum256([]byte(c.Token))
-		if usedHashes[hash] { return nil, errors.New("duplicate client token") }
+		if usedHashes[hash] {
+			return nil, errors.New("duplicate client token")
+		}
 		usedHashes[hash] = true
 		a.entries = append(a.entries, entry{client: c.Client, hash: hash})
 	}
