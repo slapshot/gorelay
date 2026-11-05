@@ -97,8 +97,8 @@ func (s *Server) ingest(w http.ResponseWriter, r *http.Request) {
 		fail(w, http.StatusBadRequest, "INVALID_IDEMPOTENCY_KEY", "Valid Idempotency-Key header required", requestID)
 		return
 	}
-	contentType, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
-	if err != nil || contentType != "application/json" || len(r.Header.Values("Content-Type")) != 1 || r.Header.Get("Content-Encoding") != "" {
+	contentType, params, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if err != nil || contentType != "application/json" || len(r.Header.Values("Content-Type")) != 1 || r.Header.Get("Content-Encoding") != "" || len(params) > 1 || (len(params) == 1 && !strings.EqualFold(params["charset"], "utf-8")) {
 		fail(w, http.StatusUnsupportedMediaType, "UNSUPPORTED_MEDIA_TYPE", "Expected unencoded application/json", requestID)
 		return
 	}
