@@ -6,7 +6,7 @@
 
 - [x] Create public repository and documentation-first README.
 - [ ] Review contracts and ADRs.
-- [ ] Choose license and contribution policy (MIT proposed).
+- [x] Choose MIT license and add contribution policy.
 - [ ] Add machine-readable OpenAPI 3.1 and validate examples.
 - [ ] Convert PostgreSQL SQL sketch into versioned migration(s) and run on real PostgreSQL.
 - [ ] Define threat model sign-off and accepted limits.
