@@ -159,3 +159,20 @@ func TestReadyAndDraining(t *testing.T) {
 	r=httptest.NewRecorder();h.ServeHTTP(r,req)
 	if r.Code!=503{t.Fatalf("not-ready %d",r.Code)}
 }
+
+// Test the safest default: admission is disabled before workers exist.
+// Even a fully authenticated client must receive a 503 without a DB write.
+func TestPreviewAdmissionDisabled(t *testing.T) {
+	store := newMemoryStore()
+	auth, err := security.NewAuthenticator([]security.Credential{
+		{Client: security.Client{ID:"alpha", Destinations:map[string]bool{"sink":true}}, Token:strings.Repeat("a",40)},
+	})
+	if err != nil { t.Fatal(err) }
+	srv, err := New(store, auth, 1024, false)
+	if err != nil { t.Fatal(err) }
+	r := post(srv.Handler(), strings.Repeat("a",40), "key1", `{"type":"x","destination_id":"sink","payload":{}}`)
+	if r.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected admission disabled, got %d %s",r.Code,r.Body.String())
+	}
+	if len(store.events) != 0 { t.Fatal("disabled admission persisted an event") }
+}
