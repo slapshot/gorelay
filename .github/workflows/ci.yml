@@ -1,0 +1,56 @@
+name: Go CI
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: gorelay_test
+          POSTGRES_USER: gorelay
+          POSTGRES_PASSWORD: test_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U gorelay -d gorelay_test"
+          --health-interval 5s --health-timeout 5s --health-retries 15
+    env:
+      GORELAY_TEST_DATABASE_URL: postgres://gorelay:test_only@127.0.0.1:5432/gorelay_test?sslmode=disable
+      PGPASSWORD: test_only
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.27.3'
+          cache: false
+      - name: Resolve pinned dependencies
+        run: go mod tidy
+      - name: Validate migration
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client
+          psql -h 127.0.0.1 -U gorelay -d gorelay_test -v ON_ERROR_STOP=1 -f migrations/postgres/0001_init.up.sql
+      - name: Unit and integration tests
+        run: go test ./...
+      - name: Race detector
+        run: go test -race ./...
+      - name: Go vet
+        run: go vet ./...
+      - name: Compile binary
+        run: go build ./cmd/gorelay
+      - name: Formatting report
+        run: |
+          gofmt -l cmd internal
