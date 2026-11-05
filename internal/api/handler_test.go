@@ -17,15 +17,20 @@ import (
 	"github.com/slapshot/gorelay/internal/security"
 )
 
+type savedAdmission struct {
+	input domain.Input
+	id string
+}
+
 type memoryStore struct {
 	mu sync.Mutex
-	keys map[string]domain.Input
+	keys map[string]savedAdmission
 	events map[string]domain.Event
 	unavailable bool
 }
 
 func newMemoryStore() *memoryStore {
-	return &memoryStore{keys: map[string]domain.Input{}, events: map[string]domain.Event{}}
+	return &memoryStore{keys: map[string]savedAdmission{}, events: map[string]domain.Event{}}
 }
 func (s *memoryStore) Ready(context.Context) error {
 	if s.unavailable { return domain.ErrUnavailable }
@@ -37,14 +42,12 @@ func (s *memoryStore) Admit(_ context.Context, in domain.Input) (domain.Event, b
 	if s.unavailable { return domain.Event{}, false, domain.ErrUnavailable }
 	key := in.ClientID + "\x00" + in.IdempotencyKey
 	if saved, ok := s.keys[key]; ok {
-		if saved.Fingerprint != in.Fingerprint { return domain.Event{}, false, domain.ErrConflict }
-		for _, event := range s.events {
-			if event.ClientID == in.ClientID && event.Type == in.Type { return event, false, nil }
-		}
+		if saved.input.Fingerprint != in.Fingerprint { return domain.Event{}, false, domain.ErrConflict }
+		return s.events[saved.id], false, nil
 	}
 	id := fmt.Sprintf("00000000-0000-4000-8000-%012x", len(s.events)+1)
 	e := domain.Event{ID:id, ClientID:in.ClientID, Type:in.Type, DestinationID:in.DestinationID, Status:domain.Pending, CreatedAt:time.Now().UTC()}
-	s.keys[key] = in
+	s.keys[key] = savedAdmission{input: in, id: id}
 	s.events[id] = e
 	return e, true, nil
 }
