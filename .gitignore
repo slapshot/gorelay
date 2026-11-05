@@ -1,0 +1,31 @@
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Go
+/bin/
+/dist/
+/coverage/
+coverage.out
+*.test
+*.prof
+*.pprof
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# Local DB and runtime data
+*.sqlite
+*.sqlite3
+*.sqlite-shm
+*.sqlite-wal
+*.sqlite3-shm
+*.sqlite3-wal
+/tmp/

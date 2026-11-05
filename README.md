@@ -1,6 +1,6 @@
 # GoRelay
 
-**GoRelay** is a self-hosted, durable HTTP event and webhook delivery service written in Go.
+**GoRelay** is an application-agnostic, self-hosted, durable HTTP event and webhook delivery service written in Go.
 
 > **Status: design / pre-alpha.** The repository currently documents a proposed architecture and API. No production-ready server, persistence adapter, deployment package, or delivery guarantee has been implemented or tested yet.
 
@@ -66,6 +66,7 @@ One event has one destination in v0.1. Multiple subscriptions, fan-out, manageme
 - [Linux/systemd deployment and recovery](docs/deployment.md)
 - [Producer transactional outbox](docs/integration.md)
 - [Implementation roadmap](docs/roadmap.md)
+- [Contributing](CONTRIBUTING.md) and [security reporting](SECURITY.md)
 - [Architecture decision records](docs/adr/README.md)
 
 A future implementation will add machine-readable OpenAPI and migration files after the contract is reviewed.
@@ -78,7 +79,7 @@ No application-specific proprietary source, real deployment addresses, credentia
 
 ## License
 
-**To be selected before code distribution.** A public repository without a license does not automatically grant permission to reuse or redistribute its contents. An OSI-approved license will be added before the first code release.
+Licensed under the **MIT License**. See [LICENSE](LICENSE).
 
 ## Sources
 
