@@ -2,7 +2,7 @@
 
 **GoRelay** is an application-agnostic, self-hosted, durable HTTP event and webhook delivery service written in Go.
 
-> **Status: design / pre-alpha.** The repository currently documents a proposed architecture and API. No production-ready server, persistence adapter, deployment package, or delivery guarantee has been implemented or tested yet.
+> **Status: design / pre-alpha.** The repository currently documents a proposed architecture and API. The dev branch contains a first, incomplete Go admission service; event delivery workers and production hardening are not implemented. No production-ready relay exists yet.
 
 GoRelay accepts authenticated events, persists them **before acknowledging acceptance**, and asynchronously delivers signed HTTP requests to allowlisted destinations. It is intended for independent applications that need a small, observable event-delivery component without adopting a full message broker.
 
@@ -69,11 +69,11 @@ One event has one destination in v0.1. Multiple subscriptions, fan-out, manageme
 - [Contributing](CONTRIBUTING.md) and [security reporting](SECURITY.md)
 - [Architecture decision records](docs/adr/README.md)
 
-A future implementation will add machine-readable OpenAPI and migration files after the contract is reviewed.
+The dev branch already contains a candidate PostgreSQL migration and admission prototype. OpenAPI and delivery workers are not yet implemented. Read [implementation status](docs/implementation-status.md) on dev.
 
 ## Status and contributing
 
-The public repository is initially **documentation-first**. Please do not depend on its design as on a shipped binary or API. See [roadmap](docs/roadmap.md) for implementation milestones and required acceptance gates.
+The main branch currently documents the design; development work is ongoing on **dev**. Please do not depend on its design as on a shipped binary or API. See [roadmap](docs/roadmap.md) for implementation milestones and required acceptance gates.
 
 No application-specific proprietary source, real deployment addresses, credentials, guest data, or internal configurations are intended to be part of this repository.
 
