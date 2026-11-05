@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
@@ -45,15 +46,8 @@ type Event struct {
 }
 
 type Store interface {
-	Admit(ctx Context, input Input) (event Event, created bool, err error)
-	GetOwned(ctx Context, clientID string, eventID string) (Event, error)
-	Ready(ctx Context) error
+	Admit(ctx context.Context, input Input) (event Event, created bool, err error)
+	GetOwned(ctx context.Context, clientID string, eventID string) (Event, error)
+	Ready(ctx context.Context) error
 }
 
-// Context makes the storage boundary explicit without linking domain to infrastructure.
-type Context interface {
-	Done() <-chan struct{}
-	Err() error
-	Deadline() (deadline time.Time, ok bool)
-	Value(key any) any
-}
