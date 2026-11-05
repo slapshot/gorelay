@@ -30,7 +30,8 @@ curl -fsSLO https://go.dev/dl/go1.27.3.linux-amd64.tar.gz
 echo '65efbc80fdc1fa2cd2631cad5b481777a68e8725f34e89f50fc6ac714e379b40  go1.27.3.linux-amd64.tar.gz' | sha256sum -c -
 sudo rm -rf /usr/local/go
 sudo tar -C /usr/local -xzf go1.27.3.linux-amd64.tar.gz
-export PATH=/usr/local/go/bin:$PATH
+sudo ln -s /usr/local/go/bin/go /usr/local/bin/go
+sudo ln -s /usr/local/go/bin/gofmt /usr/local/bin/gofmt
 go version
 ```
 
@@ -56,6 +57,7 @@ git switch dev
 go mod download
 export GORELAY_DATABASE_URL='postgres://gorelay_lab:REPLACE_WITH_LAB_PASSWORD@127.0.0.1:5432/gorelay_lab?sslmode=disable'
 psql "$GORELAY_DATABASE_URL" -v ON_ERROR_STOP=1 -f migrations/postgres/0001_init.up.sql
+export GORELAY_TEST_DATABASE_URL="$GORELAY_DATABASE_URL"
 go test ./...
 go test -race ./...
 go vet ./...
