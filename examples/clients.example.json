@@ -1,0 +1,9 @@
+{
+  "clients": [
+    {
+      "id": "demo-producer",
+      "token_env": "GORELAY_TOKEN_DEMO",
+      "destinations": ["example-sink"]
+    }
+  ]
+}
