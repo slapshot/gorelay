@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/slapshot/gorelay/internal/security"
+	"github.com/slapshot/gorelay/internal/delivery"
 )
 
 type Config struct {
@@ -19,6 +20,8 @@ type Config struct {
 	MaxBodyBytes          int64
 	Credentials           []security.Credential
 	AllowAdmissionPreview bool
+	AllowDeliveryPreview bool
+	Targets []delivery.Target
 }
 
 type clientFile struct {
@@ -105,6 +108,31 @@ func Load() (Config, error) {
 	}
 	if _, err := security.NewAuthenticator(cfg.Credentials); err != nil {
 		return Config{}, fmt.Errorf("invalid credentials: %w", err)
+	}
+	outbound := os.Getenv("GORELAY_ENABLE_DELIVERY_PREVIEW")
+	if outbound != "" && outbound != "true" && outbound != "false" {
+		return Config{}, errors.New("GORELAY_ENABLE_DELIVERY_PREVIEW must be true or false")
+	}
+	cfg.AllowDeliveryPreview = outbound == "true"
+	if cfg.AllowDeliveryPreview {
+		if !cfg.AllowAdmissionPreview {
+			return Config{}, errors.New("delivery preview requires admission preview")
+		}
+		var err error
+		cfg.Targets, err = loadDeliveryTargets(os.Getenv("GORELAY_DESTINATIONS_FILE"))
+		if err != nil { return Config{}, err }
+		destIDs := make(map[string]bool, len(cfg.Targets))
+		for _, dest := range cfg.Targets {
+			if destIDs[dest.ID] { return Config{}, errors.New("duplicate destination") }
+			destIDs[dest.ID] = true
+		}
+		for _, client := range cfg.Credentials {
+			for id := range client.Client.Destinations {
+				if !destIDs[id] {
+					return Config{}, errors.New("client references an unknown destination")
+				}
+			}
+		}
 	}
 	return cfg, nil
 }
