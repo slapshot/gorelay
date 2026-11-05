@@ -68,6 +68,15 @@ func (s *Store) Claim(ctx context.Context, limit int, lease time.Duration) ([]qu
 		return nil, fmt.Errorf("read claims: %w", err)
 	}
 	for _, j := range jobs {
+		// When taking over an expired claim, close the abandoned attempt.
+		// The old owner's delayed completion is still fenced by lease_token.
+		if _, err = tx.Exec(ctx, `
+			UPDATE delivery_attempts
+			SET finished_at=now(),outcome_code='LEASE_RECLAIMED'
+			WHERE event_id=$1::uuid AND attempt_number < $2 AND finished_at IS NULL
+		`,j.ID,j.Attempt);err!=nil{
+			return nil,fmt.Errorf("close abandoned attempt: %w",err)
+		}
 		_, err = tx.Exec(ctx, `
 			INSERT INTO delivery_attempts(event_id,attempt_number,lease_token)
 			VALUES ($1::uuid,$2,$3::uuid)`, j.ID, j.Attempt, j.LeaseToken)
