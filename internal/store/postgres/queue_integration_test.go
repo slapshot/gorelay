@@ -4,7 +4,11 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
-	"errors"
+	"io"
+	"log/slog"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"fmt"
 	"os"
 	"testing"
@@ -12,6 +16,8 @@ import (
 
 	"github.com/slapshot/gorelay/internal/domain"
 	"github.com/slapshot/gorelay/internal/queue"
+	"github.com/slapshot/gorelay/internal/delivery"
+	"github.com/slapshot/gorelay/internal/worker"
 )
 
 func queueTestStore(t *testing.T)(*Store,context.Context,string){
@@ -124,6 +130,54 @@ func TestQueueLeaseRecoveryAndExhaustion(t *testing.T){
 func TestQueueInvalidOutcome(t *testing.T){
 	s,ctx,_:=queueTestStore(t)
 	_,err:=s.Finish(ctx,queue.Job{ID:"invalid"},queue.Outcome{Kind:"UNKNOWN"})
-	if !errors.Is(err,nil) && err==nil {t.Fatal("invalid outcome accepted")}
 	if err==nil{t.Fatal("invalid outcome accepted")}
+}
+
+func TestEndToEndDeliveryToLocalSink(t *testing.T){
+	s,ctx,client:=queueTestStore(t)
+	received:=make(chan string,2)
+	sink:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){
+		body,err:=io.ReadAll(r.Body)
+		if err!=nil{t.Error(err);return}
+		if r.Header.Get("X-GoRelay-Signature")==""{t.Error("unsigned delivery")}
+		var event struct{ID string `json:"id"`}
+		if err:=json.Unmarshal(body,&event);err!=nil{t.Error(err)}
+		select{case received<-event.ID:default:}
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer sink.Close()
+	dispatcher,err:=delivery.New([]delivery.Target{
+		{ID:"sink",URL:sink.URL+"/events",AllowLoopback:true,
+			Secret:[]byte(strings.Repeat("k",40))},
+	},2*time.Second)
+	if err!=nil{t.Fatal(err)}
+	defer dispatcher.Close()
+	pool,err:=worker.New(s,dispatcher,worker.Config{
+		Concurrency:1,HTTPTimeout:2*time.Second,
+		Lease:9*time.Second,Poll:200*time.Millisecond,
+	},slog.New(slog.NewTextHandler(io.Discard,nil)))
+	if err!=nil{t.Fatal(err)}
+	event:=addQueueEvent(t,s,ctx,client,"e2e")
+	runCtx,cancel:=context.WithCancel(ctx)
+	done:=make(chan struct{})
+	go func(){pool.Run(runCtx);close(done)}()
+	defer func(){cancel();select{case <-done:case <-time.After(5*time.Second):t.Error("worker did not stop")}}()
+
+	select{
+	case eventID:=<-received:
+		if eventID!=event.ID{t.Fatalf("wrong event delivered %s",eventID)}
+	case <-time.After(5*time.Second):
+		t.Fatal("local sink did not receive an event")
+	}
+	deadline:=time.Now().Add(4*time.Second)
+	for{
+		state,err:=s.GetOwned(ctx,client,event.ID)
+		if err!=nil{t.Fatal(err)}
+		if state.Status==domain.Delivered{
+			if state.Attempts!=1{t.Fatalf("unexpected attempts %d",state.Attempts)}
+			break
+		}
+		if time.Now().After(deadline){t.Fatalf("event stuck at %s",state.Status)}
+		time.Sleep(50*time.Millisecond)
+	}
 }
