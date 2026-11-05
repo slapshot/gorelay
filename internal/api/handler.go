@@ -30,14 +30,15 @@ type Server struct {
 	store      domain.Store
 	auth       *security.Authenticator
 	maxBytes   int64
+	admissionPreview bool
 	draining   atomic.Bool
 }
 
-func New(store domain.Store, auth *security.Authenticator, maxBodyBytes int64) (*Server, error) {
+func New(store domain.Store, auth *security.Authenticator, maxBodyBytes int64, admissionPreview bool) (*Server, error) {
 	if store == nil || auth == nil || maxBodyBytes < 1024 || maxBodyBytes > 1048576 {
 		return nil, errors.New("invalid API configuration")
 	}
-	return &Server{store: store, auth: auth, maxBytes: maxBodyBytes}, nil
+	return &Server{store: store, auth: auth, maxBytes: maxBodyBytes, admissionPreview: admissionPreview}, nil
 }
 
 func (s *Server) Drain() {
@@ -85,6 +86,10 @@ func (s *Server) ingest(w http.ResponseWriter, r *http.Request) {
 	}
 	client, ok := s.authorize(w, r, requestID)
 	if !ok {
+		return
+	}
+	if !s.admissionPreview {
+		fail(w, http.StatusServiceUnavailable, "DELIVERY_NOT_IMPLEMENTED", "Event admission disabled until delivery workers are available", requestID)
 		return
 	}
 	keyValues := r.Header.Values("Idempotency-Key")
