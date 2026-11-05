@@ -2,7 +2,7 @@
 
 **GoRelay** is an application-agnostic, self-hosted, durable HTTP event and webhook delivery service written in Go.
 
-> **Status: design / pre-alpha.** The repository currently documents a proposed architecture and API. The dev branch contains a first, incomplete Go admission service; event delivery workers and production hardening are not implemented. No production-ready relay exists yet.
+> **Status: design / pre-alpha.** The repository currently documents a proposed architecture and API. The dev branch includes a pre-alpha admission service and experimental opt-in worker delivery with PostgreSQL. Production hardening and release testing are incomplete; there is no production-ready relay yet.
 
 GoRelay accepts authenticated events, persists them **before acknowledging acceptance**, and asynchronously delivers signed HTTP requests to allowlisted destinations. It is intended for independent applications that need a small, observable event-delivery component without adopting a full message broker.
 
@@ -54,6 +54,7 @@ One event has one destination in v0.1. Multiple subscriptions, fan-out, manageme
 ## Documentation
 
 - [Architecture and boundaries](docs/architecture.md)
+- [Isolated Debian development lab](docs/development-lab.md)
 - [API contracts and errors](docs/api.md)
 - [State model and delivery semantics](docs/delivery-semantics.md)
 - [PostgreSQL schema proposal](docs/database-postgresql.md)
@@ -69,7 +70,7 @@ One event has one destination in v0.1. Multiple subscriptions, fan-out, manageme
 - [Contributing](CONTRIBUTING.md) and [security reporting](SECURITY.md)
 - [Architecture decision records](docs/adr/README.md)
 
-The dev branch already contains a candidate PostgreSQL migration and admission prototype. OpenAPI and delivery workers are not yet implemented. Read [implementation status](docs/implementation-status.md) on dev.
+The dev branch contains a PostgreSQL migration, admission API and an experimental bounded worker pool. OpenAPI and production hardening remain outstanding. Read [implementation status](docs/implementation-status.md) on dev.
 
 ## Status and contributing
 
