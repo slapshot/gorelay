@@ -14,9 +14,9 @@ import (
 	"github.com/slapshot/gorelay/internal/api"
 	"github.com/slapshot/gorelay/internal/config"
 	"github.com/slapshot/gorelay/internal/delivery"
-	"github.com/slapshot/gorelay/internal/worker"
 	"github.com/slapshot/gorelay/internal/security"
 	"github.com/slapshot/gorelay/internal/store/postgres"
+	"github.com/slapshot/gorelay/internal/worker"
 )
 
 func main() {
@@ -46,15 +46,19 @@ func run(logger *slog.Logger) error {
 	defer store.Close()
 	if cfg.AllowDeliveryPreview {
 		dispatcher, err := delivery.New(cfg.Targets, 10*time.Second)
-		if err != nil { return errors.New("invalid outbound destination configuration") }
+		if err != nil {
+			return errors.New("invalid outbound destination configuration")
+		}
 		defer dispatcher.Close()
 		pool, err := worker.New(store, dispatcher, worker.Config{
 			Concurrency: 4,
-			Lease: 30*time.Second,
-			HTTPTimeout: 10*time.Second,
-			Poll: 2*time.Second,
+			Lease:       30 * time.Second,
+			HTTPTimeout: 10 * time.Second,
+			Poll:        2 * time.Second,
 		}, logger)
-		if err != nil { return errors.New("invalid worker configuration") }
+		if err != nil {
+			return errors.New("invalid worker configuration")
+		}
 		done := make(chan struct{})
 		go func() {
 			defer close(done)
@@ -64,7 +68,7 @@ func run(logger *slog.Logger) error {
 			stop()
 			select {
 			case <-done:
-			case <-time.After(5*time.Second):
+			case <-time.After(5 * time.Second):
 				logger.Warn("worker drain deadline exceeded")
 			}
 		}()

@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/slapshot/gorelay/internal/security"
 	"github.com/slapshot/gorelay/internal/delivery"
+	"github.com/slapshot/gorelay/internal/security"
 )
 
 type Config struct {
@@ -20,8 +20,8 @@ type Config struct {
 	MaxBodyBytes          int64
 	Credentials           []security.Credential
 	AllowAdmissionPreview bool
-	AllowDeliveryPreview bool
-	Targets []delivery.Target
+	AllowDeliveryPreview  bool
+	Targets               []delivery.Target
 }
 
 type clientFile struct {
@@ -120,10 +120,14 @@ func Load() (Config, error) {
 		}
 		var err error
 		cfg.Targets, err = loadDeliveryTargets(os.Getenv("GORELAY_DESTINATIONS_FILE"))
-		if err != nil { return Config{}, err }
+		if err != nil {
+			return Config{}, err
+		}
 		destIDs := make(map[string]bool, len(cfg.Targets))
 		for _, dest := range cfg.Targets {
-			if destIDs[dest.ID] { return Config{}, errors.New("duplicate destination") }
+			if destIDs[dest.ID] {
+				return Config{}, errors.New("duplicate destination")
+			}
 			destIDs[dest.ID] = true
 		}
 		for _, client := range cfg.Credentials {
