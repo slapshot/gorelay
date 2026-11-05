@@ -32,6 +32,7 @@ func NewAuthenticator(credentials []Credential) (*Authenticator, error) {
 	}
 	a := &Authenticator{}
 	ids := make(map[string]bool)
+	usedHashes := make(map[[sha256.Size]byte]bool)
 	for _, c := range credentials {
 		if c.Client.ID == "" || ids[c.Client.ID] || len(c.Token) < 32 || strings.TrimSpace(c.Token) != c.Token {
 			return nil, errors.New("invalid or duplicate client credential")
@@ -40,7 +41,10 @@ func NewAuthenticator(credentials []Credential) (*Authenticator, error) {
 			return nil, errors.New("client has no authorized destinations")
 		}
 		ids[c.Client.ID] = true
-		a.entries = append(a.entries, entry{client: c.Client, hash: sha256.Sum256([]byte(c.Token))})
+		hash := sha256.Sum256([]byte(c.Token))
+		if usedHashes[hash] { return nil, errors.New("duplicate client token") }
+		usedHashes[hash] = true
+		a.entries = append(a.entries, entry{client: c.Client, hash: hash})
 	}
 	return a, nil
 }
